@@ -1,0 +1,878 @@
+<!doctype html>
+
+
+
+  
+
+
+<html class="theme-next mist use-motion" lang="zh-Hans">
+<head>
+  <!-- hexo-inject:begin --><!-- hexo-inject:end --><meta charset="UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <link href="/lib/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css" />
+
+
+
+
+  
+  
+  
+  
+
+  
+    
+    
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+    
+    
+    <link href="//fonts.googleapis.com/css?family=Lato:300,300italic,400,400italic,700,700italic&subset=latin,latin-ext" rel="stylesheet" type="text/css">
+  
+
+
+
+
+
+
+<link href="/lib/font-awesome/css/font-awesome.min.css?v=4.6.2" rel="stylesheet" type="text/css" />
+
+<link href="/css/main.css?v=5.1.0" rel="stylesheet" type="text/css" />
+
+
+  <meta name="keywords" content="数据结构," />
+
+
+
+
+
+
+
+
+  <link rel="shortcut icon" type="image/x-icon" href="/favicon.ico?v=5.1.0" />
+
+
+
+
+
+
+<meta name="description" content="项目中需要使用前缀树匹配，对此进行了简单的调研和整理。 概述 前缀树（trie），顾名思义，一般用来匹配和查找字符串的前缀。trie的键不是直接保存在节点中，而是由节点在树中的位置决定。一个节点的所有子孙都有相同的前缀，也就是这个节点对应的字符串，而根节点对应空字符串。 trie实际上是一种DFA。输入字符串根据当前的输入的字符决定是否向下，以及去往哪个子节点。 实现分类 trie树实现:一般的链">
+<meta name="keywords" content="数据结构">
+<meta property="og:type" content="article">
+<meta property="og:title" content="前缀树匹配(Double Array Trie)">
+<meta property="og:url" content="http://turbopeter.github.io/2013/09/02/prefix-match/index.html">
+<meta property="og:site_name" content="minzhan&#39;s blog">
+<meta property="og:description" content="项目中需要使用前缀树匹配，对此进行了简单的调研和整理。 概述 前缀树（trie），顾名思义，一般用来匹配和查找字符串的前缀。trie的键不是直接保存在节点中，而是由节点在树中的位置决定。一个节点的所有子孙都有相同的前缀，也就是这个节点对应的字符串，而根节点对应空字符串。 trie实际上是一种DFA。输入字符串根据当前的输入的字符决定是否向下，以及去往哪个子节点。 实现分类 trie树实现:一般的链">
+<meta property="og:locale" content="zh-Hans">
+<meta property="og:image" content="http://turbopeter.github.io/media/example8-1.png">
+<meta property="og:image" content="http://turbopeter.github.io/media/example1.png">
+<meta property="og:image" content="http://turbopeter.github.io/media/example2.png">
+<meta property="og:image" content="http://turbopeter.github.io/media/example3.png">
+<meta property="og:image" content="http://turbopeter.github.io/media/example4.png">
+<meta property="og:image" content="http://turbopeter.github.io/media/example5.png">
+<meta property="og:image" content="http://turbopeter.github.io/media/example6.png">
+<meta property="og:image" content="http://turbopeter.github.io/media/example7.png">
+<meta property="og:image" content="http://turbopeter.github.io/media/example8.png">
+<meta property="og:updated_time" content="2018-06-18T02:21:17.381Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="前缀树匹配(Double Array Trie)">
+<meta name="twitter:description" content="项目中需要使用前缀树匹配，对此进行了简单的调研和整理。 概述 前缀树（trie），顾名思义，一般用来匹配和查找字符串的前缀。trie的键不是直接保存在节点中，而是由节点在树中的位置决定。一个节点的所有子孙都有相同的前缀，也就是这个节点对应的字符串，而根节点对应空字符串。 trie实际上是一种DFA。输入字符串根据当前的输入的字符决定是否向下，以及去往哪个子节点。 实现分类 trie树实现:一般的链">
+<meta name="twitter:image" content="http://turbopeter.github.io/media/example8-1.png">
+
+
+
+<script type="text/javascript" id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Mist',
+    sidebar: {"position":"left","display":"post"},
+    fancybox: true,
+    motion: true,
+    duoshuo: {
+      userId: '0',
+      author: '博主'
+    },
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+
+  <link rel="canonical" href="http://turbopeter.github.io/2013/09/02/prefix-match/"/>
+
+
+
+
+
+  <title> 前缀树匹配(Double Array Trie) | minzhan's blog </title><!-- hexo-inject:begin --><!-- hexo-inject:end -->
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-Hans">
+
+  
+
+
+
+
+
+
+
+
+
+
+  
+  
+    
+  
+
+  <!-- hexo-inject:begin --><!-- hexo-inject:end --><div class="container one-collumn sidebar-position-left page-post-detail ">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-meta ">
+  
+
+  <div class="custom-logo-site-title">
+    <a href="/"  class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <span class="site-title">minzhan's blog</span>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+  </div>
+  <p class="site-subtitle"></p>
+</div>
+
+<div class="site-nav-toggle">
+  <button>
+    <span class="btn-bar"></span>
+    <span class="btn-bar"></span>
+    <span class="btn-bar"></span>
+  </button>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-home"></i> <br />
+            
+            首页
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-categories">
+          <a href="/categories" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-th"></i> <br />
+            
+            分类
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-archive"></i> <br />
+            
+            归档
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-tags"></i> <br />
+            
+            标签
+          </a>
+        </li>
+      
+
+      
+    </ul>
+  
+
+  
+</nav>
+
+
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal " itemscope itemtype="http://schema.org/Article">
+  <link itemprop="mainEntityOfPage" href="http://turbopeter.github.io/2013/09/02/prefix-match/">
+
+  <span style="display:none" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <meta itemprop="name" content="turbopeter">
+    <meta itemprop="description" content="">
+    <meta itemprop="image" content="/images/avatar.gif">
+  </span>
+
+  <span style="display:none" itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+    <meta itemprop="name" content="minzhan's blog">
+    <span style="display:none" itemprop="logo" itemscope itemtype="http://schema.org/ImageObject">
+      <img style="display:none;" itemprop="url image" alt="minzhan's blog" src="">
+    </span>
+  </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+            
+            
+              
+                前缀树匹配(Double Array Trie)
+              
+            
+          </h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+              <time title="Post created" itemprop="dateCreated datePublished" datetime="2013-09-02T00:00:00+08:00">
+                2013-09-02
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+            <span class="post-category" >
+              <span class="post-meta-divider">|</span>
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/tech/" itemprop="url" rel="index">
+                    <span itemprop="name">tech</span>
+                  </a>
+                </span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+          
+
+          
+
+          
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <p><strong>项目中需要使用前缀树匹配，对此进行了简单的调研和整理。</strong></p>
+<h2>概述</h2>
+<p>前缀树（trie），顾名思义，一般用来匹配和查找字符串的前缀。trie的键不是直接保存在节点中，而是由节点在树中的位置决定。一个节点的所有子孙都有相同的前缀，也就是这个节点对应的字符串，而根节点对应空字符串。
+trie实际上是一种DFA。输入字符串根据当前的输入的字符决定是否向下，以及去往哪个子节点。</p>
+<h2>实现分类</h2>
+<p>trie树实现:一般的链表指针方式，三数组实现，双数组实现，HAT，burst trie等。</p>
+<ul>
+<li>
+<p>链表指针方式</p>
+<ul>
+<li>即每个节点对应一个字符，并有多个指针指向儿子，查找和插入从根节点按照指针的指向向下查询。这种方案，实现较为简单，但指针较多，较为浪费空间；树形结构，指针跳转，对cache不够友好，节点数目上去之后，效率不够高。</li>
+</ul>
+</li>
+<li>
+<p>HAT以及Burst trie</p>
+<ul>
+<li>是将trie树和其他数据结构，比如HashMap，结合起来，提高效率。但主要用于key/value查找，对于给定一个字符串匹配其前缀这种场景不适用。</li>
+</ul>
+</li>
+<li>
+<p>三数组实现</p>
+<ul>
+<li>利用三个数组（分别叫做base, next, check）来实现状态的转移，将前缀树压缩到三个数据里，能够较好的节省内存；数组的方式也能较好的利用缓存。</li>
+</ul>
+</li>
+<li>
+<p>双数组实现</p>
+<ul>
+<li>是在三数组的基础上，将base数组重用为next数组，节省了一个数组，并没有增加其他开销。与三数组相比，内存使用和效率进一步提升。</li>
+</ul>
+</li>
+</ul>
+<p>综上，双数组trie（Double Array trie，简称为DATrie）的实现有明显的优势，以下只讨论DATrie的细节。</p>
+<h2>DATrie算法</h2>
+<h3>结构</h3>
+<ul>
+<li>
+<p>数组表示trie树的状态转移，父节点跳转到子节点转化为父状态跳转到子状态</p>
+</li>
+<li>
+<p>利用两个数组base, check表示状态的转移</p>
+<ul>
+<li>base数组的索引用来表示状态</li>
+<li>base数组的内容为状态跳转的基地址</li>
+<li>输入字符为跳转的offset</li>
+<li>check与base大小相同，一一对应，用于保存父状态，以及解决冲突</li>
+</ul>
+</li>
+<li>
+<p>对于状态S接收到字符c后转移到状态T
+$$ S\xrightarrow{c} T $$
+满足
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">check[base[S] + c] = S</span><br><span class="line">base[S] + c = T</span><br></pre></td></tr></table></figure></p>
+<p><img src="/media/example8-1.png" alt="example8"></p>
+</li>
+</ul>
+<ul>
+<li>base数组的索引为0，1，…, base[s], …, S, …, T，均表示trie树的状态</li>
+<li>从S状态接收到c跳转到T, 则表示为base数组索引为S的内容base[S]为基地址，加上跳转偏移c，得到下一个T状态在base的索引T=base[S] + C</li>
+<li>check数组对应T的内容check[T]为跳转过来的父状态即S</li>
+</ul>
+<h3>查询</h3>
+<ol>
+<li>从base数组索引0开始，初始状态为S=base[0]，其中偏移的基地址为base[S]</li>
+<li>接受到c，则跳转到base数组索引T=base[S] + c，检查此时check数组的check[T] == S，为真跳转到3，否则匹配失败。</li>
+<li>如果base[T] == LEAF_VALUE （这里LEAF_VALUE用来表示叶子节点的特殊值），则匹配完成；否则，令S = T, 跳转到2.</li>
+</ol>
+<p>状态更新的伪码如下</p>
+<p><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">T := base[S] + c;</span><br><span class="line"></span><br><span class="line">if check[T] = S then</span><br><span class="line">  next state := T</span><br><span class="line">else</span><br><span class="line">  fail</span><br><span class="line">endif</span><br></pre></td></tr></table></figure></p>
+<h3>例子</h3>
+<ul>
+<li>假定输入两个前缀为'ab', 'ad'，将字母a-z映射为数字1，2，3,…, 26.</li>
+<li>这里用-1代表数组元素为空，-2代表叶子节点, -3代表根节点</li>
+<li>状态如下
+<ul>
+<li>
+<p>初始状态</p>
+<p><img src="/media/example1.png" alt="example1"></p>
+<blockquote>
+<p>对于索引0，check[0]=-3代表根节点, base[0]表示偏移基地址为1，其他元素为-1表示为空</p>
+</blockquote>
+</li>
+<li>
+<p>输入前缀ab</p>
+<ul>
+<li>
+<p>输入a
+<img src="/media/example2.png" alt="example2"></p>
+<blockquote>
+<p>base[0]+a，由状态0跳转到状态2. check[2]为-1，说明为空，更新为父状态0；base[2]更新为跳转过来的base, 即base[0]的值1</p>
+</blockquote>
+</li>
+<li>
+<p>输入b
+<img src="/media/example3.png" alt="example3"></p>
+<blockquote>
+<p>base[2]+b，由状态2跳转到状态3，check[3]为-1，说明为空，更新为父状态2；由于字符串结束，将base[3]更新为-2，代表叶节点。</p>
+</blockquote>
+</li>
+</ul>
+</li>
+<li>
+<p>输入前缀ad</p>
+<ul>
+<li>
+<p>输入a
+<img src="/media/example4.png" alt="example4"></p>
+<blockquote>
+<p>图中base和check的状态不会变化。
+根据base[0]+a，从状态0跳转到2。 check[2]不为空，但check[2]的值0与其父状态S=0相等，则无需更新，进入状态2，等待输入下一个字符。这个过程相当于一个查询过程</p>
+</blockquote>
+</li>
+<li>
+<p>输入d
+<img src="/media/example5.png" alt="example5"></p>
+<blockquote>
+<p>base[2]+d，由状态2跳转到状态5，check[5]为-1，说明为空，更新为父状态2；由于字符串结束，将base[5]更新为-2，代表叶节点。</p>
+</blockquote>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+<h3>解决冲突</h3>
+<p>DATrie不可避免会出现冲突</p>
+<ul>
+<li>以上例子，假设接着输入字符串ca
+<ul>
+<li>
+<p>输入c
+<img src="/media/example6.png" alt="example6"></p>
+<blockquote>
+<p>状态由0跳转到状态4，check[4]空闲，将check[4]赋值为0，base[4]赋值为1.</p>
+</blockquote>
+</li>
+<li>
+<p>输入a, 发生冲突
+<img src="/media/example7.png" alt="example7"></p>
+<blockquote>
+<p>根据base[4]+4 状态从4跳转到2， 但是check[2]非空，并且check[2]=0不等于父状态4，此时发生冲突</p>
+</blockquote>
+</li>
+<li>
+<p>解决冲突</p>
+<ul>
+<li>
+<p>挪动以4为父状态状态转移，查找对应base，check的连续的空闲空间以放入状态。这里只有最新的输入a带来的状态转移以4为父状态。base[6], check[6]有空闲。</p>
+</li>
+<li>
+<p>修改base[4], 使其能够根据输入跳转到空闲空间，即base[4] = 6 - a = 5.</p>
+</li>
+<li>
+<p>重新插入a. 如下图</p>
+<p><img src="/media/example8.png" alt="example8"></p>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+<h3>已有的实现代码</h3>
+<p>由于业务中需要用到java，找到了一个已有java代码实现地址：<a href="https://github.com/digitalstain/DoubleArrayTrie" target="_blank" rel="noopener">https://github.com/digitalstain/DoubleArrayTrie</a>, 但存在一些问题</p>
+<ul>
+<li>问题
+<ul>
+<li>代码本身的问题
+<ul>
+<li>该代码接口不易使用，均是对int数组的操作，需要对字符串映射后使用</li>
+<li>代码应用场景与我们的业务不同，应用于根据对大量单词建立trie树，然后输入一个串判断是否是某个单词的前缀，与我们的匹配方向刚好相反</li>
+</ul>
+</li>
+<li>算法实现的问题
+<ul>
+<li>目前在处理叶节点时，均是用一个特殊的数字标识-2，但是上述例子接着插入abc这样的前缀时，由于b在前缀ab中已经标识为-2叶节点，此时check检查也是相同的父节点，如果覆盖了base中的值，b为叶节点的信息就会丢失。</li>
+<li>解决方案：为前缀结尾增加一个特殊字符‘\0’用来标识结尾，插入方法不变。查找时，需要每个父节点除了接收字符跳转意外，还需要加特殊字符跳转到某个状态，检查base值是否-2为叶节点，以匹配前缀到此结束的情况。</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+<h3>对算法进行Tail优化</h3>
+<p>根据论文An Efficient Implementation of Trie Structures， 针对上述DATrie算法还能一个tail的改进，即每个前缀的最后的结尾单独存储在一个数组里，由base里存储的值指向该tail。</p>
+<p>例如， a 和 abcd作为前缀输入后，bcd作为一个单独的tail另外存放到一个字符串数组里。</p>
+<ul>
+<li>
+<p>速度
+减少了base， check的状态数，以及冲突的概率，提高了插入的速度。在本地做了一个简单测试，随机插入长度1-100的随机串10w条，no tail的算法需120秒，而tail的算法只需19秒。
+查询速度没有太大差别。</p>
+</li>
+<li>
+<p>内存
+状态数的减少的开销大于存储tail的开销，节省了内存。对于10w条线上URL，匹配12456条前缀，内存消耗9M，而no tail的大约16M</p>
+</li>
+<li>
+<p>删除
+能很方便的实现删除，只需将tail删除即可。</p>
+</li>
+</ul>
+<p>基于上述，重新实现了一个java版的前缀匹配在团队内使用。</p>
+
+      
+    </div>
+
+    <div>
+      
+        
+
+      
+    </div>
+
+    <div>
+      
+        
+
+      
+    </div>
+
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/数据结构/" rel="tag"># 数据结构</a>
+          
+        </div>
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2011/03/24/erlang-linkin-driver-port_control/" rel="next" title="Erlang linkin driver用port_control方式时的一些经验分享">
+                <i class="fa fa-chevron-left"></i> Erlang linkin driver用port_control方式时的一些经验分享
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/2018/06/18/hello-world/" rel="prev" title="Hello World">
+                Hello World <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+
+          </div>
+          
+
+
+          
+  <div class="comments" id="comments">
+    
+  </div>
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap" >
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <section class="site-overview sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+          <img class="site-author-image" itemprop="image"
+               src="/images/avatar.gif"
+               alt="turbopeter" />
+          <p class="site-author-name" itemprop="name">turbopeter</p>
+          <p class="site-description motion-element" itemprop="description"></p>
+        </div>
+        <nav class="site-state motion-element">
+          <div class="site-state-item site-state-posts">
+            <a href="/archives">
+              <span class="site-state-item-count">3</span>
+              <span class="site-state-item-name">日志</span>
+            </a>
+          </div>
+
+          
+            <div class="site-state-item site-state-categories">
+              <a href="/categories">
+                <span class="site-state-item-count">1</span>
+                <span class="site-state-item-name">分类</span>
+              </a>
+            </div>
+          
+
+          
+            <div class="site-state-item site-state-tags">
+              <a href="/tags">
+                <span class="site-state-item-count">4</span>
+                <span class="site-state-item-name">标签</span>
+              </a>
+            </div>
+          
+
+        </nav>
+
+        
+
+        <div class="links-of-author motion-element">
+          
+        </div>
+
+        
+        
+
+        
+        
+
+        
+
+
+      </section>
+
+      
+      <!--noindex-->
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+              
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#undefined"><span class="nav-number">1.</span> <span class="nav-text">概述</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#undefined"><span class="nav-number">2.</span> <span class="nav-text">实现分类</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#undefined"><span class="nav-number">3.</span> <span class="nav-text">DATrie算法</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#undefined"><span class="nav-number">3.1.</span> <span class="nav-text">结构</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#undefined"><span class="nav-number">3.2.</span> <span class="nav-text">查询</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#undefined"><span class="nav-number">3.3.</span> <span class="nav-text">例子</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#undefined"><span class="nav-number">3.4.</span> <span class="nav-text">解决冲突</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#undefined"><span class="nav-number">3.5.</span> <span class="nav-text">已有的实现代码</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#undefined"><span class="nav-number">3.6.</span> <span class="nav-text">对算法进行Tail优化</span></a></li></ol></li></ol></div>
+            
+
+          </div>
+        </section>
+      <!--/noindex-->
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright" >
+  
+  &copy; 
+  <span itemprop="copyrightYear">2018</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">turbopeter</span>
+</div>
+
+
+<div class="powered-by">
+  由 <a class="theme-link" href="https://hexo.io">Hexo</a> 强力驱动
+</div>
+
+<div class="theme-info">
+  主题 -
+  <a class="theme-link" href="https://github.com/iissnan/hexo-theme-next">
+    NexT.Mist
+  </a>
+</div>
+
+
+        
+
+        
+      </div>
+    </footer>
+
+    <div class="back-to-top">
+      <i class="fa fa-arrow-up"></i>
+    </div>
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+
+  
+  <script type="text/javascript" src="/lib/jquery/index.js?v=2.1.3"></script>
+
+  
+  <script type="text/javascript" src="/lib/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+
+  
+  <script type="text/javascript" src="/lib/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+
+  
+  <script type="text/javascript" src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/lib/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=5.1.0"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=5.1.0"></script>
+
+
+
+  
+  
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.1.0"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.1.0"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=5.1.0"></script><!-- hexo-inject:begin --><!-- Begin: Injected MathJax -->
+<script type="text/x-mathjax-config">
+  MathJax.Hub.Config("");
+</script>
+
+<script type="text/x-mathjax-config">
+  MathJax.Hub.Queue(function() {
+    var all = MathJax.Hub.getAllJax(), i;
+    for(i=0; i < all.length; i += 1) {
+      all[i].SourceElement().parentNode.className += ' has-jax';
+    }
+  });
+</script>
+
+<script type="text/javascript" src="//cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML">
+</script>
+<!-- End: Injected MathJax -->
+<!-- hexo-inject:end -->
+
+
+
+  
+
+
+
+  
+
+
+
+
+	
+
+
+
+
+  
+  
+
+  
+
+  
+
+  
+
+  
+
+
+</body>
+</html>

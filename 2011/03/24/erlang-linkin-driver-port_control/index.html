@@ -1,0 +1,673 @@
+<!doctype html>
+
+
+
+  
+
+
+<html class="theme-next mist use-motion" lang="zh-Hans">
+<head>
+  <!-- hexo-inject:begin --><!-- hexo-inject:end --><meta charset="UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <link href="/lib/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css" />
+
+
+
+
+  
+  
+  
+  
+
+  
+    
+    
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+    
+    
+    <link href="//fonts.googleapis.com/css?family=Lato:300,300italic,400,400italic,700,700italic&subset=latin,latin-ext" rel="stylesheet" type="text/css">
+  
+
+
+
+
+
+
+<link href="/lib/font-awesome/css/font-awesome.min.css?v=4.6.2" rel="stylesheet" type="text/css" />
+
+<link href="/css/main.css?v=5.1.0" rel="stylesheet" type="text/css" />
+
+
+  <meta name="keywords" content="erlang," />
+
+
+
+
+
+
+
+
+  <link rel="shortcut icon" type="image/x-icon" href="/favicon.ico?v=5.1.0" />
+
+
+
+
+
+
+<meta name="description" content="最近由于需要Erlang与C交互，采用了linkin driver的方式。利用port_control以及driver_entry中的control回调，调用C函数。在传递复杂的数据结构，序列化和反序列化数据时遇到了一些问题，与大家分享一下。先简单介绍一下eralng driver。 首先，Erlang与外部程序交互的方式主要有两种：  Port方式，Erlang利用标准输入和输出与外部的程序进行">
+<meta name="keywords" content="erlang">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Erlang linkin driver用port_control方式时的一些经验分享">
+<meta property="og:url" content="http://turbopeter.github.io/2011/03/24/erlang-linkin-driver-port_control/index.html">
+<meta property="og:site_name" content="minzhan&#39;s blog">
+<meta property="og:description" content="最近由于需要Erlang与C交互，采用了linkin driver的方式。利用port_control以及driver_entry中的control回调，调用C函数。在传递复杂的数据结构，序列化和反序列化数据时遇到了一些问题，与大家分享一下。先简单介绍一下eralng driver。 首先，Erlang与外部程序交互的方式主要有两种：  Port方式，Erlang利用标准输入和输出与外部的程序进行">
+<meta property="og:locale" content="zh-Hans">
+<meta property="og:updated_time" content="2018-06-18T01:53:09.102Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="Erlang linkin driver用port_control方式时的一些经验分享">
+<meta name="twitter:description" content="最近由于需要Erlang与C交互，采用了linkin driver的方式。利用port_control以及driver_entry中的control回调，调用C函数。在传递复杂的数据结构，序列化和反序列化数据时遇到了一些问题，与大家分享一下。先简单介绍一下eralng driver。 首先，Erlang与外部程序交互的方式主要有两种：  Port方式，Erlang利用标准输入和输出与外部的程序进行">
+
+
+
+<script type="text/javascript" id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Mist',
+    sidebar: {"position":"left","display":"post"},
+    fancybox: true,
+    motion: true,
+    duoshuo: {
+      userId: '0',
+      author: '博主'
+    },
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+
+  <link rel="canonical" href="http://turbopeter.github.io/2011/03/24/erlang-linkin-driver-port_control/"/>
+
+
+
+
+
+  <title> Erlang linkin driver用port_control方式时的一些经验分享 | minzhan's blog </title><!-- hexo-inject:begin --><!-- hexo-inject:end -->
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-Hans">
+
+  
+
+
+
+
+
+
+
+
+
+
+  
+  
+    
+  
+
+  <!-- hexo-inject:begin --><!-- hexo-inject:end --><div class="container one-collumn sidebar-position-left page-post-detail ">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-meta ">
+  
+
+  <div class="custom-logo-site-title">
+    <a href="/"  class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <span class="site-title">minzhan's blog</span>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+  </div>
+  <p class="site-subtitle"></p>
+</div>
+
+<div class="site-nav-toggle">
+  <button>
+    <span class="btn-bar"></span>
+    <span class="btn-bar"></span>
+    <span class="btn-bar"></span>
+  </button>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-home"></i> <br />
+            
+            首页
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-categories">
+          <a href="/categories" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-th"></i> <br />
+            
+            分类
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-archive"></i> <br />
+            
+            归档
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-tags"></i> <br />
+            
+            标签
+          </a>
+        </li>
+      
+
+      
+    </ul>
+  
+
+  
+</nav>
+
+
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal " itemscope itemtype="http://schema.org/Article">
+  <link itemprop="mainEntityOfPage" href="http://turbopeter.github.io/2011/03/24/erlang-linkin-driver-port_control/">
+
+  <span style="display:none" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <meta itemprop="name" content="turbopeter">
+    <meta itemprop="description" content="">
+    <meta itemprop="image" content="/images/avatar.gif">
+  </span>
+
+  <span style="display:none" itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+    <meta itemprop="name" content="minzhan's blog">
+    <span style="display:none" itemprop="logo" itemscope itemtype="http://schema.org/ImageObject">
+      <img style="display:none;" itemprop="url image" alt="minzhan's blog" src="">
+    </span>
+  </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+            
+            
+              
+                Erlang linkin driver用port_control方式时的一些经验分享
+              
+            
+          </h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+              <time title="Post created" itemprop="dateCreated datePublished" datetime="2011-03-24T00:00:00+08:00">
+                2011-03-24
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+            <span class="post-category" >
+              <span class="post-meta-divider">|</span>
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/tech/" itemprop="url" rel="index">
+                    <span itemprop="name">tech</span>
+                  </a>
+                </span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+          
+
+          
+
+          
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <p>最近由于需要Erlang与C交互，采用了linkin driver的方式。利用port_control以及driver_entry中的control回调，调用C函数。在传递复杂的数据结构，序列化和反序列化数据时遇到了一些问题，与大家分享一下。先简单介绍一下eralng driver。
+首先，Erlang与外部程序交互的方式主要有两种：</p>
+<ol>
+<li>Port方式，Erlang利用标准输入和输出与外部的程序进行交互。此种方式下，外部程序作为一个外部的进程运行。</li>
+<li>内联驱动（linkin driver）方式，Erlang动态载入so，并直接调用so中的函数。此种方式，效率高于前一种，但比较危险，会导致erlang 系统崩溃。</li>
+</ol>
+<p>另外，还有一种NIF方式，暂时没有考虑。这里我采用了linkin driver的方式。</p>
+<p>Erlang调用driver也有两种方式：</p>
+<ol>
+<li>通过Port ！ Message发送消息，然后用recevie接收反馈。</li>
+<li>port_control或者port_call直接调用，可以直接返回值。此种方式效率较高，属于同步调用。port_control与port_call用法差不多，只是port_contorl最后一个参数Data是binary，返回也是binary。而port_call最后一个参数是term，返回也是term。
+这里选用port_control的方式。</li>
+</ol>
+<p>为了方便encode和decode比较复杂的数据结构，采用ei这个库来序列化和反序列化参数。
+首先，open一个port, 采用binary方式：</p>
+<p><figure class="highlight erlang"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">case</span> erl_ddll:load_driver(<span class="string">"."</span>, SharedLib) <span class="keyword">of</span></span><br><span class="line">     ok -&gt; ok;</span><br><span class="line">     &#123;error, alread_loaded&#125; -&gt; ok;</span><br><span class="line">     Ret -&gt;</span><br><span class="line">        error_logger:error_msg(<span class="string">"Could not load driver ~p~n"</span>, [Ret]),</span><br><span class="line">        exit(&#123;error, could_not_load_driver&#125;)</span><br><span class="line"><span class="keyword">end</span>,</span><br><span class="line">Port = open_port(&#123;spawn, SharedLib&#125;, [binary]).</span><br></pre></td></tr></table></figure></p>
+<p>打开port之后，就能直接用port_control来调用driver里面的函数了</p>
+<p><figure class="highlight erlang"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">Resp=erlang:port_control(Port, Cmd, term_to_binary(Msg)),</span><br><span class="line">   io:format(<span class="string">"recv ctl data ~p~n"</span>,[binary_to_term(Resp)]).</span><br></pre></td></tr></table></figure></p>
+<p>Port即先前打开的Port， Cmd是一个int，你可以对你的函数编号，1代表调用sum，2代表调用twice。。。最后Msg即参数，注意需要传入binary（或者字符串），返回结果Resp也是binary（或者字符串）。</p>
+<p>对应C程序这里，需要定义一个回调函数port_ctl, 并把它添加到driver_entry里面注册，如下：</p>
+<p><figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br></pre></td><td class="code"><pre><span class="line">ErlDrvEntry example_driver_entry = &#123;</span><br><span class="line"> <span class="literal">NULL</span>,</span><br><span class="line"> example_drv_start, <span class="comment">//driver启动时回调函数</span></span><br><span class="line"> example_drv_stop, <span class="comment">//driver停止时回调函数</span></span><br><span class="line"> <span class="literal">NULL</span>,</span><br><span class="line"> <span class="literal">NULL</span>,</span><br><span class="line"> <span class="literal">NULL</span>,</span><br><span class="line"> <span class="string">"example1_drv"</span>, <span class="comment">//driver名称</span></span><br><span class="line"> <span class="literal">NULL</span>,</span><br><span class="line"> <span class="literal">NULL</span>,</span><br><span class="line"> port_ctl,   <span class="comment">//在这里注册</span></span><br><span class="line"> <span class="literal">NULL</span>,</span><br><span class="line"> <span class="literal">NULL</span>,</span><br><span class="line"> <span class="literal">NULL</span>,</span><br><span class="line"> <span class="literal">NULL</span>,</span><br><span class="line"> <span class="literal">NULL</span>,</span><br><span class="line"> <span class="literal">NULL</span></span><br><span class="line">&#125;;</span><br><span class="line"> </span><br><span class="line">DRIVER_INIT(example1_drv)</span><br><span class="line">&#123;</span><br><span class="line">    <span class="keyword">return</span> &amp;example_driver_entry;</span><br><span class="line">&#125;</span><br><span class="line"> </span><br><span class="line"><span class="function"><span class="keyword">static</span> ErlDrvData <span class="title">example_drv_start</span><span class="params">(ErlDrvPort port, <span class="keyword">char</span>* buff)</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">    example_data * d = (example_data*) driver_alloc(<span class="keyword">sizeof</span>(example_data));</span><br><span class="line">    d-&gt;port = port;</span><br><span class="line">    set_port_control_flags(port, PORT_CONTROL_FLAG_BINARY);</span><br><span class="line">    <span class="keyword">return</span> (ErlDrvData)d;</span><br><span class="line">&#125;</span><br><span class="line"> </span><br><span class="line"><span class="function"><span class="keyword">static</span> <span class="keyword">void</span> <span class="title">example_drv_stop</span><span class="params">(ErlDrvData handle)</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">    driver_free((<span class="keyword">char</span>*) handle);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<p>Erlang调用port_control 会使得driver调用刚刚注册的port_ctl回调函数。
+下面是最重要的port_ctl函数. cmd即port_control的Cmd，  buf和len为接受到的函数参数数据的buffer和长度， rbuf是返回值buffer。 这里假设port_control传入Msg的参数是将一个tuple {a,b}序列化后的结果：</p>
+<p><figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">static</span> <span class="keyword">int</span> <span class="title">port_ctl</span><span class="params">(ErlDrvData handle, <span class="keyword">unsigned</span> <span class="keyword">int</span> cmd, <span class="keyword">char</span>* buf, <span class="keyword">int</span> len,</span></span></span><br><span class="line"><span class="function"><span class="params">                        <span class="keyword">char</span>** rbuf, <span class="keyword">int</span> rsize)</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">    ei_x_buff x;</span><br><span class="line"> </span><br><span class="line">    <span class="keyword">if</span>(<span class="number">1</span> == cmd) &#123; <span class="comment">//1号命令，调用 sum(a,b)</span></span><br><span class="line"> </span><br><span class="line">       <span class="keyword">char</span> *p;</span><br><span class="line">       <span class="keyword">int</span> i;</span><br><span class="line">       <span class="keyword">int</span> arity = <span class="number">0</span>;</span><br><span class="line">       <span class="keyword">int</span> version = <span class="number">0</span>;</span><br><span class="line">       <span class="keyword">long</span> a, b;</span><br><span class="line">       <span class="keyword">int</span> index = <span class="number">0</span>;</span><br><span class="line">       <span class="keyword">int</span> res = <span class="number">0</span>;</span><br><span class="line"> </span><br><span class="line">       ei_decode_version(buf, &amp;index, &amp;version); <span class="comment">//必须有</span></span><br><span class="line"> </span><br><span class="line">       ei_decode_tuple_header(buf, &amp;index, &amp;arity); <span class="comment">//decode出tuple头，</span></span><br><span class="line">                                                    <span class="comment">//得到tuple的长度arity,这里为2</span></span><br><span class="line"> </span><br><span class="line">       ei_decode_long(buf, &amp;index, &amp;a); <span class="comment">//tuple第一个元素</span></span><br><span class="line">       ei_decode_long(buf, &amp;index, &amp;b); <span class="comment">//tuple第二个元素</span></span><br><span class="line"> </span><br><span class="line">       res = sum(a, b); <span class="comment">//这里调用目标函数，这里是一个简单的求和</span></span><br><span class="line"> </span><br><span class="line">        <span class="comment">//encode返回数据阶段</span></span><br><span class="line">       ei_x_new_with_version(&amp;x);</span><br><span class="line"> </span><br><span class="line">       ei_x_encode_long(&amp;x, res);</span><br><span class="line"> </span><br><span class="line">           <span class="keyword">if</span>(x.index &gt; rsize)&#123;</span><br><span class="line">              ErlDrvBinary *ptr = driver_alloc_binary(x.index);</span><br><span class="line">              <span class="keyword">if</span>(<span class="literal">NULL</span> == ptr)</span><br><span class="line">                  erl_exit(<span class="number">1</span>,<span class="string">"Out of virtual memory in malloc (%s)"</span>, __FILE__);</span><br><span class="line"> </span><br><span class="line">              <span class="built_in">memcpy</span>(ptr-&gt;orig_bytes, x.buff, x.index);</span><br><span class="line">              *rbuf = (<span class="keyword">char</span> *)ptr;</span><br><span class="line">           &#125; <span class="keyword">else</span></span><br><span class="line">               <span class="built_in">memcpy</span>(*rbuf, x.buff, x.index);</span><br><span class="line"> </span><br><span class="line">        ei_x_free(&amp;x);</span><br><span class="line">        <span class="keyword">return</span> x.index;</span><br><span class="line">    &#125; <span class="keyword">else</span></span><br><span class="line">        <span class="keyword">if</span>(<span class="number">2</span> == cmd) &#123;...... &#125;</span><br><span class="line"> </span><br><span class="line">    <span class="keyword">return</span> <span class="number">-1</span>; <span class="comment">//返回&lt;0会导致elang：port_control抛出badarg异常</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<p>注意，ei_decode_version(buf, &amp;index, &amp;version);必须有，我在开始没有这一行时，总是无法decode成功。
+后来经过阅读erlang源代码发现，传入的数据是这样序列化的：</p>
+<p>序列化的数据都会有生成个magic number作为version， 放在第一个字节。比如一个tuple {1,2}， 假设他的version为131， tuple类型用’i'表示， 1,2属于ERL_SMALL_INTEGER_EXT，用‘a’表示该类型，则序列化后如下：</p>
+<p><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">131 i 2 a 1 a 2</span><br></pre></td></tr></table></figure></p>
+<p>对应的131为version， i代表是一个tuple，2代表长度为2， 后面是tuple的内容，第一个a代表是一个小整数，1是这个整数的值；接着第二个a代表第二个元素为小整数，2代表这个整数值为2.
+所以，必须先把version 131 decode出来，然后调用ei_decode_tuple接着解析131之后的数据才能正常。 这里，ei_decode_xxx函数中 index这个参数随着decode的调用，会指向下一个需要decode的位置。</p>
+<p>另外，example_drv_start回调函数中set_port_control_flags(port, PORT_CONTROL_FLAG_BINARY);也必须有。</p>
+<p>如果没有这一行, port_control返回值Reply不会是binary，而是一个list，[131, $i, 2, $a, 1, $a, 2], 这个list无法用binary_to_term还原，而且自己处理也比较麻烦。
+相反，如果设置后，则会返回一个binary <code>《131，$i, 2, $a, 1, $a, 2》</code>，这个格式可以用binary_to_term转化为term。相应的，如果设置PORT_CONTROL_FLAG_BINARY， 当返回缓冲区大小不够时，一定要用driver_alloc_binary来为*rbuf分配缓冲区。</p>
+<p>如果觉得binary与term转化比较麻烦，可以考虑用<code>erlang:port_call</code>函数， c程序不变，只是erlang程序不需要<code>term_to_binary</code>以及<code>binary_to_term</code>.</p>
+
+      
+    </div>
+
+    <div>
+      
+        
+
+      
+    </div>
+
+    <div>
+      
+        
+
+      
+    </div>
+
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/erlang/" rel="tag"># erlang</a>
+          
+        </div>
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/2013/09/02/prefix-match/" rel="prev" title="前缀树匹配(Double Array Trie)">
+                前缀树匹配(Double Array Trie) <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+
+          </div>
+          
+
+
+          
+  <div class="comments" id="comments">
+    
+  </div>
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    <div class="sidebar-inner">
+
+      
+
+      
+
+      <section class="site-overview sidebar-panel sidebar-panel-active">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+          <img class="site-author-image" itemprop="image"
+               src="/images/avatar.gif"
+               alt="turbopeter" />
+          <p class="site-author-name" itemprop="name">turbopeter</p>
+          <p class="site-description motion-element" itemprop="description"></p>
+        </div>
+        <nav class="site-state motion-element">
+          <div class="site-state-item site-state-posts">
+            <a href="/archives">
+              <span class="site-state-item-count">3</span>
+              <span class="site-state-item-name">日志</span>
+            </a>
+          </div>
+
+          
+            <div class="site-state-item site-state-categories">
+              <a href="/categories">
+                <span class="site-state-item-count">1</span>
+                <span class="site-state-item-name">分类</span>
+              </a>
+            </div>
+          
+
+          
+            <div class="site-state-item site-state-tags">
+              <a href="/tags">
+                <span class="site-state-item-count">4</span>
+                <span class="site-state-item-name">标签</span>
+              </a>
+            </div>
+          
+
+        </nav>
+
+        
+
+        <div class="links-of-author motion-element">
+          
+        </div>
+
+        
+        
+
+        
+        
+
+        
+
+
+      </section>
+
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright" >
+  
+  &copy; 
+  <span itemprop="copyrightYear">2018</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">turbopeter</span>
+</div>
+
+
+<div class="powered-by">
+  由 <a class="theme-link" href="https://hexo.io">Hexo</a> 强力驱动
+</div>
+
+<div class="theme-info">
+  主题 -
+  <a class="theme-link" href="https://github.com/iissnan/hexo-theme-next">
+    NexT.Mist
+  </a>
+</div>
+
+
+        
+
+        
+      </div>
+    </footer>
+
+    <div class="back-to-top">
+      <i class="fa fa-arrow-up"></i>
+    </div>
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+
+  
+  <script type="text/javascript" src="/lib/jquery/index.js?v=2.1.3"></script>
+
+  
+  <script type="text/javascript" src="/lib/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+
+  
+  <script type="text/javascript" src="/lib/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+
+  
+  <script type="text/javascript" src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/lib/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=5.1.0"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=5.1.0"></script>
+
+
+
+  
+  
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.1.0"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.1.0"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=5.1.0"></script><!-- hexo-inject:begin --><!-- Begin: Injected MathJax -->
+<script type="text/x-mathjax-config">
+  MathJax.Hub.Config("");
+</script>
+
+<script type="text/x-mathjax-config">
+  MathJax.Hub.Queue(function() {
+    var all = MathJax.Hub.getAllJax(), i;
+    for(i=0; i < all.length; i += 1) {
+      all[i].SourceElement().parentNode.className += ' has-jax';
+    }
+  });
+</script>
+
+<script type="text/javascript" src="//cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML">
+</script>
+<!-- End: Injected MathJax -->
+<!-- hexo-inject:end -->
+
+
+
+  
+
+
+
+  
+
+
+
+
+	
+
+
+
+
+  
+  
+
+  
+
+  
+
+  
+
+  
+
+
+</body>
+</html>
