@@ -92,20 +92,20 @@
 <meta property="og:site_name" content="minzhan&#39;s blog">
 <meta property="og:description" content="项目中需要使用前缀树匹配，对此进行了简单的调研和整理。 概述 前缀树（trie），顾名思义，一般用来匹配和查找字符串的前缀。trie的键不是直接保存在节点中，而是由节点在树中的位置决定。一个节点的所有子孙都有相同的前缀，也就是这个节点对应的字符串，而根节点对应空字符串。 trie实际上是一种DFA。输入字符串根据当前的输入的字符决定是否向下，以及去往哪个子节点。 实现分类 trie树实现:一般的链">
 <meta property="og:locale" content="zh-Hans">
-<meta property="og:image" content="http://turbopeter.github.io/media/example8-1.png">
-<meta property="og:image" content="http://turbopeter.github.io/media/example1.png">
-<meta property="og:image" content="http://turbopeter.github.io/media/example2.png">
-<meta property="og:image" content="http://turbopeter.github.io/media/example3.png">
-<meta property="og:image" content="http://turbopeter.github.io/media/example4.png">
-<meta property="og:image" content="http://turbopeter.github.io/media/example5.png">
-<meta property="og:image" content="http://turbopeter.github.io/media/example6.png">
-<meta property="og:image" content="http://turbopeter.github.io/media/example7.png">
-<meta property="og:image" content="http://turbopeter.github.io/media/example8.png">
-<meta property="og:updated_time" content="2018-06-18T02:21:17.381Z">
+<meta property="og:image" content="http://turbopeter.github.io/2013/09/02/prefix-match/trie1.png">
+<meta property="og:image" content="http://turbopeter.github.io/2013/09/02/prefix-match/example1.png">
+<meta property="og:image" content="http://turbopeter.github.io/2013/09/02/prefix-match/example2.png">
+<meta property="og:image" content="http://turbopeter.github.io/2013/09/02/prefix-match/example3.png">
+<meta property="og:image" content="http://turbopeter.github.io/2013/09/02/prefix-match/example4.png">
+<meta property="og:image" content="http://turbopeter.github.io/2013/09/02/prefix-match/example5.png">
+<meta property="og:image" content="http://turbopeter.github.io/2013/09/02/prefix-match/example6.png">
+<meta property="og:image" content="http://turbopeter.github.io/2013/09/02/prefix-match/example7.png">
+<meta property="og:image" content="http://turbopeter.github.io/2013/09/02/prefix-match/example8.png">
+<meta property="og:updated_time" content="2018-06-18T03:08:47.971Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="前缀树匹配(Double Array Trie)">
 <meta name="twitter:description" content="项目中需要使用前缀树匹配，对此进行了简单的调研和整理。 概述 前缀树（trie），顾名思义，一般用来匹配和查找字符串的前缀。trie的键不是直接保存在节点中，而是由节点在树中的位置决定。一个节点的所有子孙都有相同的前缀，也就是这个节点对应的字符串，而根节点对应空字符串。 trie实际上是一种DFA。输入字符串根据当前的输入的字符决定是否向下，以及去往哪个子节点。 实现分类 trie树实现:一般的链">
-<meta name="twitter:image" content="http://turbopeter.github.io/media/example8-1.png">
+<meta name="twitter:image" content="http://turbopeter.github.io/2013/09/02/prefix-match/trie1.png">
 
 
 
@@ -404,13 +404,13 @@ trie实际上是一种DFA。输入字符串根据当前的输入的字符决定�
 $$ S\xrightarrow{c} T $$
 满足
 <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">check[base[S] + c] = S</span><br><span class="line">base[S] + c = T</span><br></pre></td></tr></table></figure></p>
-<p><img src="/media/example8-1.png" alt="example8"></p>
-</li>
-</ul>
+<p><img src="/2013/09/02/prefix-match/trie1.png"></p>
 <ul>
 <li>base数组的索引为0，1，…, base[s], …, S, …, T，均表示trie树的状态</li>
 <li>从S状态接收到c跳转到T, 则表示为base数组索引为S的内容base[S]为基地址，加上跳转偏移c，得到下一个T状态在base的索引T=base[S] + C</li>
 <li>check数组对应T的内容check[T]为跳转过来的父状态即S</li>
+</ul>
+</li>
 </ul>
 <h3>查询</h3>
 <ol>
@@ -427,8 +427,8 @@ $$ S\xrightarrow{c} T $$
 <li>状态如下
 <ul>
 <li>
-<p>初始状态</p>
-<p><img src="/media/example1.png" alt="example1"></p>
+<p>初始状态
+<img src="/2013/09/02/prefix-match/example1.png"></p>
 <blockquote>
 <p>对于索引0，check[0]=-3代表根节点, base[0]表示偏移基地址为1，其他元素为-1表示为空</p>
 </blockquote>
@@ -438,14 +438,14 @@ $$ S\xrightarrow{c} T $$
 <ul>
 <li>
 <p>输入a
-<img src="/media/example2.png" alt="example2"></p>
+<img src="/2013/09/02/prefix-match/example2.png"></p>
 <blockquote>
 <p>base[0]+a，由状态0跳转到状态2. check[2]为-1，说明为空，更新为父状态0；base[2]更新为跳转过来的base, 即base[0]的值1</p>
 </blockquote>
 </li>
 <li>
 <p>输入b
-<img src="/media/example3.png" alt="example3"></p>
+<img src="/2013/09/02/prefix-match/example3.png"></p>
 <blockquote>
 <p>base[2]+b，由状态2跳转到状态3，check[3]为-1，说明为空，更新为父状态2；由于字符串结束，将base[3]更新为-2，代表叶节点。</p>
 </blockquote>
@@ -457,7 +457,7 @@ $$ S\xrightarrow{c} T $$
 <ul>
 <li>
 <p>输入a
-<img src="/media/example4.png" alt="example4"></p>
+<img src="/2013/09/02/prefix-match/example4.png"></p>
 <blockquote>
 <p>图中base和check的状态不会变化。
 根据base[0]+a，从状态0跳转到2。 check[2]不为空，但check[2]的值0与其父状态S=0相等，则无需更新，进入状态2，等待输入下一个字符。这个过程相当于一个查询过程</p>
@@ -465,7 +465,7 @@ $$ S\xrightarrow{c} T $$
 </li>
 <li>
 <p>输入d
-<img src="/media/example5.png" alt="example5"></p>
+<img src="/2013/09/02/prefix-match/example5.png"></p>
 <blockquote>
 <p>base[2]+d，由状态2跳转到状态5，check[5]为-1，说明为空，更新为父状态2；由于字符串结束，将base[5]更新为-2，代表叶节点。</p>
 </blockquote>
@@ -482,14 +482,14 @@ $$ S\xrightarrow{c} T $$
 <ul>
 <li>
 <p>输入c
-<img src="/media/example6.png" alt="example6"></p>
+<img src="/2013/09/02/prefix-match/example6.png"></p>
 <blockquote>
 <p>状态由0跳转到状态4，check[4]空闲，将check[4]赋值为0，base[4]赋值为1.</p>
 </blockquote>
 </li>
 <li>
 <p>输入a, 发生冲突
-<img src="/media/example7.png" alt="example7"></p>
+<img src="/2013/09/02/prefix-match/example7.png"></p>
 <blockquote>
 <p>根据base[4]+4 状态从4跳转到2， 但是check[2]非空，并且check[2]=0不等于父状态4，此时发生冲突</p>
 </blockquote>
@@ -505,7 +505,7 @@ $$ S\xrightarrow{c} T $$
 </li>
 <li>
 <p>重新插入a. 如下图</p>
-<p><img src="/media/example8.png" alt="example8"></p>
+<p><img src="/2013/09/02/prefix-match/example8.png"></p>
 </li>
 </ul>
 </li>
